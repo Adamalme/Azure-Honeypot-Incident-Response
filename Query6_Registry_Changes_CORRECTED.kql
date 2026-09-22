@@ -1,0 +1,44 @@
+// Query 6: Registry Changes & Persistence Mechanisms (CORRECTED FOR DEFENDER)
+// Purpose: Identify suspicious registry modifications indicating persistence, malware installation, or system compromise
+// Duration: August 30 - September 15, 2026
+// Results Expected: ~5,000+ registry events
+// Key Finding: Registry modifications in critical keys (Run, Services, Policies) indicate persistence attempts
+//
+// Field Corrections Applied:
+// - Defender uses: Timestamp (not TimeGenerated)
+// - Defender uses: RegistryKey (not RegistryHive)
+// - Defender uses: RegistryValueName (correct)
+// - ActionType values: RegistryValueSet, RegistryKeyDeleted, RegistryKeyCreated, RegistryValueDeleted
+// - All queries filtered to: DeviceName contains "sql-labuser"
+//
+// Grouped by: Device, RegistryKey, RegistryValueName
+// Focus: Registry Run, Services, and Policies persistence locations
+
+DeviceRegistryEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| where RegistryKey has_any (
+    "Run", "RunOnce", "Services", "Policies", "Shell", "ShellExecute",
+    "AppInit_DLLs", "BootExecute", "Winlogon"
+)
+| summarize 
+    TotalRegistryEvents = count(),
+    ValueSet = countif(ActionType == "RegistryValueSet"),
+    KeyDeleted = countif(ActionType == "RegistryKeyDeleted"),
+    KeyCreated = countif(ActionType == "RegistryKeyCreated"),
+    ValueDeleted = countif(ActionType == "RegistryValueDeleted"),
+    FirstActivity = min(Timestamp),
+    LastActivity = max(Timestamp)
+    by DeviceName, RegistryKey, RegistryValueName
+| order by TotalRegistryEvents desc
+| project 
+    Device = DeviceName,
+    RegistryKey,
+    ValueName = RegistryValueName,
+    TotalEvents = TotalRegistryEvents,
+    ValueSet,
+    KeyDeleted,
+    KeyCreated,
+    ValueDeleted,
+    FirstActivity,
+    LastActivity
