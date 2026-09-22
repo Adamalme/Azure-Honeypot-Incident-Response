@@ -1,0 +1,34 @@
+// Query 1: MySQL Malicious Commands (CORRECTED FOR DEFENDER)
+// Purpose: Identify SQL commands executed during the attack
+// Duration: August 30 - September 15, 2026
+// Results Expected: 221 malicious SQL commands
+// CORRECTED: Using DeviceName filter and Timestamp field
+
+DeviceProcessEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| where ProcessCommandLine has_any (
+    "DROP",
+    "DELETE",
+    "TRUNCATE",
+    "ALTER",
+    "GRANT",
+    "REVOKE",
+    "CREATE USER",
+    "SET GLOBAL",
+    "mysql",
+    "sqlcmd"
+)
+| summarize 
+    TotalCommands = count(),
+    UniqueUsers = dcount(AccountName),
+    CommandTypes = make_set(ProcessCommandLine)
+    by Timestamp, AccountName, FileName
+| order by Timestamp desc
+| project 
+    Time = Timestamp,
+    User = AccountName,
+    Process = FileName,
+    TotalCommands,
+    UniqueUsers,
+    CommandDetails = CommandTypes

@@ -1,0 +1,39 @@
+// Query 5: File Access & Modification Analysis (CORRECTED FOR DEFENDER)
+// Purpose: Identify suspicious file access, creation, and deletion
+// Duration: August 30 - September 15, 2026
+// Results Expected: 12,726 file events
+// Key Finding: Extensive OS file modification indicates deep system compromise
+
+DeviceFileEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| where ActionType in ("FileCreated", "FileModified", "FileDeleted")
+    and not(FolderPath startswith "C:\\Windows\\Temp")
+    and not(FileName startswith "~")
+| extend 
+    IsSystemFile = iff(FolderPath startswith "C:\\Windows\\System32" or FolderPath startswith "C:\\Program Files", 1, 0),
+    IsSuspiciousPath = iff(FolderPath has_any ("AppData", "Temp", "ProgramData"), 1, 0)
+| summarize 
+    TotalFileEvents = count(),
+    CreatedFiles = countif(ActionType == "FileCreated"),
+    ModifiedFiles = countif(ActionType == "FileModified"),
+    DeletedFiles = countif(ActionType == "FileDeleted"),
+    UniqueFiles = dcount(FileName),
+    SystemFileChanges = countif(IsSystemFile == 1),
+    FirstActivity = min(Timestamp),
+    LastActivity = max(Timestamp)
+    by DeviceName, AccountName, FolderPath
+| order by TotalFileEvents desc
+| project 
+    Device = DeviceName,
+    User = AccountName,
+    Path = FolderPath,
+    TotalEvents = TotalFileEvents,
+    CreatedFiles,
+    ModifiedFiles,
+    DeletedFiles,
+    UniqueFiles,
+    SystemFileModifications = SystemFileChanges,
+    FirstActivity,
+    LastActivity
+| limit 100

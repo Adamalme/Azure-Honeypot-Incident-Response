@@ -1,0 +1,31 @@
+// Query 2: Windows Logon Compromise Detection (CORRECTED FOR DEFENDER)
+// Purpose: Identify brute force attempts and successful logons
+// Duration: August 30 - September 15, 2026
+// Results Expected: 88+ successful logons, 156 failed attempts, 8 unique attacker IPs
+
+DeviceLogonEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| where AccountName in ("sql-labuser", "administrator", "system", "root")
+    and (ActionType == "LogonSuccess" or ActionType == "LogonFailed")
+| extend IsFailure = iff(ActionType == "LogonFailed", 1, 0)
+| summarize 
+    SuccessfulLogons = countif(ActionType == "LogonSuccess"),
+    FailedLogons = countif(ActionType == "LogonFailed"),
+    TotalAttempts = count(),
+    UniqueRemoteIPs = dcount(RemoteIP),
+    FirstSeen = min(Timestamp),
+    LastSeen = max(Timestamp),
+    LogonTypes = make_set(LogonType)
+    by AccountName, RemoteIP
+| where FailedLogons > 5 or SuccessfulLogons > 0
+| order by TotalAttempts desc
+| project 
+    Account = AccountName,
+    AttackerIP = RemoteIP,
+    SuccessfulLogons,
+    FailedLogons,
+    TotalAttempts,
+    FirstAttempt = FirstSeen,
+    LastAttempt = LastSeen,
+    LogonTypes
