@@ -1,0 +1,42 @@
+// Query 4: Network Connections Analysis
+// Purpose: Identify all outbound network traffic and C2 communication attempts
+// Note: Field name is RemoteIP (not DestinationIpAddr)
+// MITRE ATT&CK: T1071 (Application Layer Protocol)
+// Duration: August 30 - September 15, 2026
+// Results Expected: 1,642 network events
+
+DeviceNetworkEvents
+| where TimeGenerated between (datetime(2026-08-30) .. datetime(2026-09-15))
+| where RemotePort in (80, 443, 8080, 8443, 53, 22, 3389, 445, 139)
+    or RemoteIPType == "Public"
+| extend 
+    IsC2Traffic = iff(RemoteIPType == "Public" and RemotePort in (443, 80, 8080, 8443), 1, 0),
+    ProtocolType = case(
+        RemotePort == 443, "HTTPS",
+        RemotePort == 80, "HTTP",
+        RemotePort == 53, "DNS",
+        RemotePort == 22, "SSH",
+        RemotePort == 3389, "RDP",
+        RemotePort in (139, 445), "SMB",
+        "OTHER"
+    )
+| summarize 
+    TotalConnections = count(),
+    UniqueRemoteIPs = dcount(RemoteIP),
+    ConnectionAttempts = countif(ActionType == "ConnectionAttempted"),
+    SuccessfulConnections = countif(ActionType == "ConnectionSuccess"),
+    FirstSeen = min(TimeGenerated),
+    LastSeen = max(TimeGenerated)
+    by RemoteIP, RemotePort, ProtocolType, RemoteUrl
+| order by TotalConnections desc
+| project 
+    RemoteIP,
+    RemotePort,
+    Protocol = ProtocolType,
+    TotalConnections,
+    Attempts = ConnectionAttempts,
+    Successful = SuccessfulConnections,
+    FirstSeen,
+    LastSeen,
+    URL = RemoteUrl
+| limit 50
