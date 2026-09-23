@@ -1,0 +1,50 @@
+// Query 7: Master Attack Timeline - All Events Correlated (CORRECTED FOR DEFENDER)
+// Purpose: Create comprehensive timeline merging all threat sources (process, network, file, registry, logon, MySQL) into one attack narrative
+// Duration: August 30 - September 15, 2026
+// Results Expected: ~69,000+ total forensic events across all 6 data sources
+// Key Finding: Continuous coordinated attack across all system layers - processes, network, files, registry, logons, and database
+//
+// Field Corrections Applied:
+// - Defender uses: Timestamp (not TimeGenerated)
+// - Defender uses: FileName (not ProcessName)
+// - Defender uses: ProcessCommandLine (not CommandLine)
+// - Defender uses: RegistryKey (not RegistryHive)
+// - All queries filtered to: DeviceName contains "sql-labuser"
+//
+// Data Sources Merged:
+// 1. DeviceProcessEvents - process execution and command line activity
+// 2. DeviceNetworkEvents - outbound/inbound network connections
+// 3. DeviceFileEvents - file creation, modification, deletion
+// 4. DeviceRegistryEvents - registry key modifications
+// 5. DeviceLogonEvents - successful/failed authentication attempts
+//
+// Timeline shows: Complete attack progression from initial reconnaissance through persistence
+
+union 
+(DeviceProcessEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| project Timestamp, DeviceName, EventType = "ProcessExecution", Details = strcat(FileName, " ", ProcessCommandLine), InitiatingProcess = InitiatingProcessFileName),
+(DeviceNetworkEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| project Timestamp, DeviceName, EventType = "NetworkConnection", Details = strcat(RemoteIP, ":", RemotePort, " (", ActionType, ")"), InitiatingProcess = InitiatingProcessFileName),
+(DeviceFileEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| project Timestamp, DeviceName, EventType = "FileModification", Details = strcat(ActionType, " - ", FolderPath), InitiatingProcess = InitiatingProcessFileName),
+(DeviceRegistryEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| project Timestamp, DeviceName, EventType = "RegistryModification", Details = strcat(ActionType, " - ", RegistryKey, " - ", RegistryValueName), InitiatingProcess = InitiatingProcessFileName),
+(DeviceLogonEvents
+| where DeviceName contains "sql-labuser"
+| where Timestamp between (datetime(2026-08-30) .. datetime(2026-09-15))
+| project Timestamp, DeviceName, EventType = "LogonEvent", Details = strcat(ActionType, " - ", AccountName, " from ", RemoteIP), InitiatingProcess = "LogonProcess")
+| order by Timestamp asc
+| project 
+    Time = Timestamp,
+    Device = DeviceName,
+    EventType,
+    Activity = Details,
+    InitiatingProcess
