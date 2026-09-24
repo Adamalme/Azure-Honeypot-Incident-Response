@@ -1,5 +1,8 @@
-# Azure-Honeypot-Incident-Response
+# 🍯Azure-Honeypot-Incident-Response
 Real honeypot attack forensic analysis - 69,191 events, multi-country attackers, incident response report
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+<img width="1536" height="1024" alt="ChatGPT Image Sep 13, 2026, 11_55_01 PM" src="https://github.com/user-attachments/assets/4dc55ac9-e447-4fd1-a97c-c7c70a71bbfb" />
+
 
 
 # Azure Honeypot - Incident Response Report
@@ -18,10 +21,9 @@ I conducted a real honeypot security project by intentionally exposing an Azure 
 - **Impact:** 69,191 logged events, 6 compromised accounts, complete attack chain
 - **Detection:** Microsoft Sentinel custom detection rules (KQL queries)
 
-### **4. Add "Why This Matters" Section** (one paragraph, employer perspective)
 
 ```markdown
-## Why This Matters
+## Why This Project Matters
 Most security professionals never analyze a real attack. I did. This project 
 proves I can: collect forensic data at scale, correlate events across multiple 
 sources, identify attack patterns, apply security frameworks in practice, and 
@@ -29,28 +31,29 @@ document findings professionally. No degree required - just curiosity and
 persistence.
 ```
 
----
+## What This Project Contains
 
-### **5. Add Links to Your Files** (make it clickable)
+1. **Incident Response Report (PDF)**
+   - Azure_Honeypot_Incident_Response_Report(Adam).pdf
+   - Executive Summary, Forensic Analysis, MITRE ATT&CK mapping, Final Report
 
-In "What This Project Contains", change to:
+2. **KQL Queries (7 queries)**
+   - Query1_MySQL_Commands_CORRECTED.kql
+   - Query2_Windows_Logons_CORRECTED.kql
+   - Query3_Process_Execution_CORRECTED.kql
+   - Query4_Network_Connections_CORRECTED.kql
+   - Query5_File_Access_CORRECTED.kql
+   - Query6_Registry_Changes_CORRECTED.kql
+   - Query7_Master_Timeline_CORRECTED.kql
 
-```markdown
-### 1. Complete Incident Response Report
-- [Executive Summary](Incident_Report_Final.md#executive-summary)
-- [Phase 8: Forensic Analysis](Incident_Report_Final.md#phase-8)
-- [Phase 9: MITRE ATT&CK Mapping](Incident_Report_Final.md#phase-9)
-- [Phase 10: Final Report](Incident_Report_Final.md#phase-10)
-
-### 2. KQL Queries
-- [Query 1: MySQL Commands](KQL_Queries/Query1_MySQL_Commands.kql)
-- [Query 2: Windows Logons](KQL_Queries/Query2_Windows_Logons.kql)
-- [Query 3: Process Execution](KQL_Queries/Query3_Process_Execution.kql)
-- [Query 4: Network Connections](KQL_Queries/Query4_Network_Connections.kql)
-- [Query 5: File Access](KQL_Queries/Query5_File_Access.kql)
-- [Query 6: Registry Changes](KQL_Queries/Query6_Registry_Changes.kql)
-- [Query 7: Master Timeline](KQL_Queries/Query7_Master_Timeline.kql)
-```
+3. **CSV Data Files**
+   - DeviceFileEvents.csv.csv
+   - DeviceLogonEvents.csv.csv
+   - DeviceNetworkEvents.csv.csv
+   - DeviceProcessEvents.csv.csv
+   - DeviceRegistryEvents.csv.csv
+   - MySQLAudit_CL-Auth Logs.csv.csv
+   - Sql-labuser.csv.csv
 
 ### **FINAL VERSION (with all improvements):**
 
@@ -124,6 +127,7 @@ Every organization needs SOC analysts and Security Engineers.
 
 ## Future Work
 - Deploy T-Pot distributed honeypot
+- Python Automation Honeypot
 - Analyze attacks at global scale
 - Study attacker patterns by region
 - Build automated threat intelligence
